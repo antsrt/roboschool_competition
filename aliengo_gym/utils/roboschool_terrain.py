@@ -1,6 +1,7 @@
 # flat_terrain_only.py
 
 import numpy as np
+import matplotlib.pyplot as plt
 from isaacgym import terrain_utils
 
 
@@ -10,8 +11,8 @@ class Terrain:
         horizontal_scale=0.1,
         vertical_scale=0.005,
         border_size=0.0,
-        terrain_length=10.0,
-        terrain_width=5.0,
+        terrain_length=20.0,
+        terrain_width=12.0,
         mesh_type="trimesh",
         slope_treshold=1.5,
     ):
@@ -144,7 +145,7 @@ class Terrain:
         box3_l_px = max(1, int(1.0 / self.horizontal_scale))
 
         box3_center_x = start_x + int(3.5 / self.horizontal_scale)
-        box3_center_y = start_y + int(3.2 / self.horizontal_scale) + 40
+        box3_center_y = start_y + int(3.2 / self.horizontal_scale) + 50
 
         x0 = box3_center_x - box3_w_px // 2
         x1 = x0 + box3_w_px
@@ -154,9 +155,105 @@ class Terrain:
         self.height_field_raw[x0:x1, y0:y1] = obstacle_height_px
 
         self.heightsamples = self.height_field_raw
+
+        # -------------------------
+        # box 4
+        # size: 2.0 m x 0.5 m
+        # -------------------------
+        box4_w_px = max(1, int(2.0 / self.horizontal_scale))
+        box4_l_px = max(1, int(0.5 / self.horizontal_scale))
+
+        box4_center_x = start_x + int(3.5 / self.horizontal_scale) + 10
+        box4_center_y = start_y + int(3.2 / self.horizontal_scale) + 90
+
+        x0 = box4_center_x - box4_w_px // 2
+        x1 = x0 + box4_w_px
+        y0 = box4_center_y - box4_l_px // 2
+        y1 = y0 + box4_l_px
+        x0, x1, y0, y1 = clamp_to_inner_area(x0, x1, y0, y1)
+        self.height_field_raw[x0:x1, y0:y1] = obstacle_height_px
+
+        self.heightsamples = self.height_field_raw
+
+        # -------------------------
+        # box 5
+        # size: 2.0 m x 0.5 m
+        # -------------------------
+        box5_w_px = max(1, int(2.0 / self.horizontal_scale))
+        box5_l_px = max(1, int(0.5 / self.horizontal_scale))
+
+        box5_center_x = start_x + int(3.5 / self.horizontal_scale) + 50
+        box5_center_y = start_y + int(3.2 / self.horizontal_scale) + 20
+
+        x0 = box5_center_x - box5_w_px // 2
+        x1 = x0 + box5_w_px
+        y0 = box5_center_y - box5_l_px // 2
+        y1 = y0 + box5_l_px
+        x0, x1, y0, y1 = clamp_to_inner_area(x0, x1, y0, y1)
+        self.height_field_raw[x0:x1, y0:y1] = obstacle_height_px
+
+        self.heightsamples = self.height_field_raw
+
+        # -------------------------
+        # box 6
+        # size: 0.5 m x 2.0 m
+        # -------------------------
+        box6_w_px = max(1, int(0.5 / self.horizontal_scale))
+        box6_l_px = max(1, int(2.0 / self.horizontal_scale))
+
+        box6_center_x = start_x + int(3.5 / self.horizontal_scale) + 61
+        box6_center_y = start_y + int(3.2 / self.horizontal_scale) + 13
+
+        x0 = box6_center_x - box6_w_px // 2
+        x1 = x0 + box6_w_px
+        y0 = box6_center_y - box6_l_px // 2
+        y1 = y0 + box6_l_px
+        x0, x1, y0, y1 = clamp_to_inner_area(x0, x1, y0, y1)
+        self.height_field_raw[x0:x1, y0:y1] = obstacle_height_px
+
+        self.heightsamples = self.height_field_raw
+
+        # -------------------------
+        # box 7
+        # size: 4.0 m x 0.5 m
+        # -------------------------
+        box7_w_px = max(1, int(4.0 / self.horizontal_scale))
+        box7_l_px = max(1, int(0.5 / self.horizontal_scale))
+
+        box7_center_x = start_x + int(3.5 / self.horizontal_scale) + 40
+        box7_center_y = start_y + int(3.2 / self.horizontal_scale) + 120
+
+        x0 = box7_center_x - box7_w_px // 2
+        x1 = x0 + box7_w_px
+        y0 = box7_center_y - box7_l_px // 2
+        y1 = y0 + box7_l_px
+        x0, x1, y0, y1 = clamp_to_inner_area(x0, x1, y0, y1)
+        self.height_field_raw[x0:x1, y0:y1] = obstacle_height_px
+
+        self.heightsamples = self.height_field_raw
+
+        # -------------------------
+        # box 8
+        # size: 0.5 m x 2.0 m
+        # -------------------------
+        box8_w_px = max(1, int(0.5 / self.horizontal_scale))
+        box8_l_px = max(1, int(2.0 / self.horizontal_scale))
+
+        box8_center_x = start_x + int(3.5 / self.horizontal_scale) + 20
+        box8_center_y = start_y + int(3.2 / self.horizontal_scale) + 128
+
+        x0 = box8_center_x - box8_w_px // 2
+        x1 = x0 + box8_w_px
+        y0 = box8_center_y - box8_l_px // 2
+        y1 = y0 + box8_l_px
+        x0, x1, y0, y1 = clamp_to_inner_area(x0, x1, y0, y1)
+        self.height_field_raw[x0:x1, y0:y1] = obstacle_height_px
+
+        self.heightsamples = self.height_field_raw
+        
         self.env_origins = np.zeros((1, 1, 3), dtype=np.float32)
         self.env_origins[0, 0] = [
-            2.5,
+            self.terrain_width / 2,
             1.0,
             0.3,
         ]
@@ -170,3 +267,21 @@ class Terrain:
                 self.vertical_scale,
                 self.slope_treshold,
             )
+
+def generate_binary_map(height_field):
+    # 1 = obstacle, 0 = free space
+    binary_map = (height_field > 0).astype(np.uint8)
+    return binary_map
+
+
+if __name__ == "__main__":
+    terrain = Terrain()
+
+    height_field = terrain.height_field_raw
+
+    binary_map = generate_binary_map(height_field)
+
+    # visualize
+    plt.imshow(binary_map, cmap="gray")
+    plt.title("Binary Occupancy Map")
+    plt.show()

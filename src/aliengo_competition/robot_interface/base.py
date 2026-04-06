@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from aliengo_competition.robot_interface.types import RobotState
-
 
 class AliengoRobotInterface(ABC):
     @abstractmethod
@@ -37,12 +35,3 @@ class AliengoRobotInterface(ABC):
     @abstractmethod
     def is_fallen(self) -> bool:
         raise NotImplementedError
-
-    def set_velocity_command(self, vx: float, vy: float, vw: float) -> None:
-        self.set_speed(vx=vx, vy=vy, vw=vw)
-
-    def read_state(self) -> RobotState:
-        raise NotImplementedError
-
-    def get_control_dt(self) -> float:
-        return 0.02

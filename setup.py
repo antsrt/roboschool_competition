@@ -1,4 +1,5 @@
-from setuptools import find_packages, setup
+from setuptools import find_packages
+from distutils.core import setup
 
 setup(
     name='aliengo_gym',
@@ -15,7 +16,6 @@ setup(
                       'gym>=0.14.0',
                       'tqdm',
                       'matplotlib',
-                      'numpy==1.23.5',
-                      'opencv-python==4.8.1.78'
+                      'numpy==1.23.5'
                       ]
 )

@@ -508,8 +508,6 @@ class LeggedRobot(BaseTask):
                     horizontal_scale=self.cfg.terrain.horizontal_scale,
                     vertical_scale=self.cfg.terrain.vertical_scale,
                     border_size=self.cfg.terrain.border_size,
-                    terrain_length=self.cfg.terrain.terrain_length,
-                    terrain_width=self.cfg.terrain.terrain_width,
                     mesh_type=self.cfg.terrain.mesh_type,
                     slope_treshold=self.cfg.terrain.slope_treshold,
                 )
@@ -519,8 +517,6 @@ class LeggedRobot(BaseTask):
                     horizontal_scale=self.cfg.terrain.horizontal_scale,
                     vertical_scale=self.cfg.terrain.vertical_scale,
                     border_size=self.cfg.terrain.border_size,
-                    terrain_length=self.cfg.terrain.terrain_length,
-                    terrain_width=self.cfg.terrain.terrain_width,
                     mesh_type=self.cfg.terrain.mesh_type,
                     slope_treshold=self.cfg.terrain.slope_treshold,
                 )
@@ -1610,18 +1606,41 @@ class LeggedRobot(BaseTask):
                 gymapi.Vec3(1.0, 0.0, 0.0), math.radians(camera_pitch)
             )
 
-        box_asset_root = os.path.join(MINI_GYM_ROOT_DIR, "resources", "assets", "textured_box")
-        box_asset_file = "textured_box.urdf"
+            object_asset_options = gymapi.AssetOptions()
+            object_asset_options.fix_base_link = True
+            object_asset_options.use_mesh_materials = True
 
-        box_asset_options = gymapi.AssetOptions()
-        box_asset_options.fix_base_link = True  # boxes don't move
-        box_asset_options.use_mesh_materials = True
+            object_asset_specs = [
+                ("backpack", "textured_box.urdf"),
+                ("bottle", "textured_box.urdf"),
+                ("chair", "textured_box.urdf"),
+                ("cup", "textured_box.urdf"),
+                ("laptop", "textured_box.urdf"),
+            ]
 
-        self.box_asset = self.gym.load_asset(
+            self.object_assets = []
+            for asset_folder, asset_file in object_asset_specs:
+                asset_root = os.path.join(MINI_GYM_ROOT_DIR, "resources", "assets", "objects", asset_folder)
+                asset = self.gym.load_asset(
+                    self.sim,
+                    asset_root,
+                    asset_file,
+                    object_asset_options
+                )
+                self.object_assets.append(asset)
+
+        photo_asset_root = os.path.join(MINI_GYM_ROOT_DIR, "resources", "assets", "logo")
+        photo_asset_file = "logo.urdf"
+
+        photo_asset_options = gymapi.AssetOptions()
+        photo_asset_options.fix_base_link = True
+        photo_asset_options.use_mesh_materials = True
+
+        self.photo_asset = self.gym.load_asset(
             self.sim,
-            box_asset_root,
-            box_asset_file,
-            box_asset_options
+            photo_asset_root,
+            photo_asset_file,
+            photo_asset_options
         )
 
         for i in range(self.num_envs):
@@ -1643,6 +1662,30 @@ class LeggedRobot(BaseTask):
             body_props = self.gym.get_actor_rigid_body_properties(env_handle, anymal_handle)
             body_props = self._process_rigid_body_props(body_props, i)
             self.gym.set_actor_rigid_body_properties(env_handle, anymal_handle, body_props, recomputeInertia=True)
+
+            photo_pose = gymapi.Transform()
+            photo_pose.p = gymapi.Vec3(-1.0, 10.0, 3.0)
+            q_x = gymapi.Quat.from_axis_angle(gymapi.Vec3(1.0, 0.0, 0.0), math.pi)
+            q_y = gymapi.Quat.from_axis_angle(gymapi.Vec3(0.0, 1.0, 0.0), math.pi)
+            q_z = gymapi.Quat.from_axis_angle(gymapi.Vec3(0.0, 0.0, 1.0), -math.pi / 2)
+            photo_pose.r = q_z * q_y * q_x
+
+            photo_handle = self.gym.create_actor(
+                env_handle,
+                self.photo_asset,
+                photo_pose,
+                "photo_frame",
+                i,
+                0,
+                0
+            )
+
+            self.gym.set_actor_scale(env_handle, photo_handle, 4.0)
+
+            photo_body_props = self.gym.get_actor_rigid_body_properties(env_handle, photo_handle)
+            for p in photo_body_props:
+                p.flags = gymapi.RIGID_BODY_DISABLE_GRAVITY
+            self.gym.set_actor_rigid_body_properties(env_handle, photo_handle, photo_body_props, recomputeInertia=True)
 
             if self.front_camera_enabled:
                 camera_body_handle = self.gym.find_actor_rigid_body_handle(
@@ -1681,8 +1724,8 @@ class LeggedRobot(BaseTask):
 
             placed = []
 
-            x_boxes = [4.11, 1.0, 3.91, 1.0, 1.0]
-            y_boxes = [4.32, 0.7, 8.42, 2.18, 9.13]
+            x_boxes = [4.0, 10.5, 8.0, 1.0, 7.0]
+            y_boxes = [4.5, 6.0, 9.5, 2.0, 16.0]
 
             for b in range(num_boxes):
                 x, y = x_boxes[b], y_boxes[b]
@@ -1700,10 +1743,13 @@ class LeggedRobot(BaseTask):
 
                 pose = gymapi.Transform()
                 pose.p = gymapi.Vec3(x, y, 0.25)
+                q_x = gymapi.Quat.from_axis_angle(gymapi.Vec3(1.0, 0.0, 0.0), math.pi / 2.0)
+                q_z = gymapi.Quat.from_axis_angle(gymapi.Vec3(0.0, 0.0, 1.0), math.pi)
+                pose.r = q_z * q_x
 
                 box_handle = self.gym.create_actor(
                     env_handle,
-                    self.box_asset,
+                    self.object_assets[b],
                     pose,
                     f"box_{b}",
                     i,
@@ -1712,76 +1758,6 @@ class LeggedRobot(BaseTask):
                 )
 
                 pass
-            
-            # num_boxes = 5
-            # free_radius = 0.25
-
-            # rng = np.random.default_rng(i)  # different per env
-            # placed = []
-
-            # x_boxes = [4.11, 1.0, 3.91, 1.0, 1.0]
-            # y_boxes = [4.32, 0.7, 8.42, 2.18, 9.13]
-
-            # for b in range(num_boxes):
-            #     for _ in range(200):  # try multiple times
-            #         half_box = 0.25  # because box is 0.5m
-
-            #         # x = rng.uniform(
-            #         #     -self.terrain.terrain_width / 2 + half_box,
-            #         #     self.terrain.terrain_width / 2 - half_box
-            #         # ) + self.terrain.terrain_width / 2
-
-            #         # y = rng.uniform(
-            #         #     -self.terrain.terrain_length / 2 + half_box,
-            #         #     self.terrain.terrain_length / 2 - half_box
-            #         # ) + self.terrain.terrain_length / 2
-
-            #         x, y = x_boxes[b], y_boxes[b]
-
-            #         # check distance from other boxes
-            #         valid = True
-            #         for px, py in placed:
-            #             if (x - px)**2 + (y - py)**2 < (2 * free_radius)**2:
-            #                 valid = False
-            #                 break
-
-            #         if not valid:
-            #             continue
-
-            #         placed.append((x, y))
-
-            #         pose = gymapi.Transform()
-            #         pose.p = gymapi.Vec3(x, y, 0.25)  # half height
-
-            #         box_handle = self.gym.create_actor(
-            #             env_handle,
-            #             self.box_asset,
-            #             pose,
-            #             f"box_{b}",
-            #             i,
-            #             0,
-            #             0
-            #         )
-
-            #         # make texture visible (IMPORTANT)
-            #         self.gym.set_rigid_body_color(
-            #             env_handle,
-            #             box_handle,
-            #             0,
-            #             gymapi.MESH_VISUAL,
-            #             gymapi.Vec3(1.0, 1.0, 1.0)
-            #         )
-
-            #         # apply texture
-            #         self.gym.set_rigid_body_texture(
-            #             env_handle,
-            #             box_handle,
-            #             0,
-            #             gymapi.MESH_VISUAL,
-            #             self.box_textures[b % len(self.box_textures)]
-            #         )
-
-            #         break
 
         self.feet_indices = torch.zeros(len(feet_names), dtype=torch.long, device=self.device, requires_grad=False)
         for i in range(len(feet_names)):
