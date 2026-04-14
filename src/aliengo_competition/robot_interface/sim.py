@@ -84,12 +84,30 @@ class SimAliengoRobot(AliengoRobotInterface):
         base_env = self._unwrap_env()
         dt = self._get_control_dt()
 
-        joint_positions = self._tensor_to_numpy(base_env.dof_pos[0])
-        joint_velocities = self._tensor_to_numpy(base_env.dof_vel[0])
+        num_dof = int(base_env.dof_pos.shape[1])
+        num_actuated_dof = int(getattr(base_env, "num_actuated_dof", num_dof))
+        num_actuated_dof = max(0, min(num_actuated_dof, num_dof))
+
+        dof_pos = base_env.dof_pos[0, :num_actuated_dof]
+        dof_vel = base_env.dof_vel[0, :num_actuated_dof]
+
+        default_dof_pos = getattr(base_env, "default_dof_pos", None)
+        if torch.is_tensor(default_dof_pos):
+            if default_dof_pos.ndim >= 2:
+                default_dof_pos_ref = default_dof_pos[0, :num_actuated_dof]
+            else:
+                default_dof_pos_ref = default_dof_pos[:num_actuated_dof]
+        else:
+            default_dof_pos_ref = torch.zeros_like(dof_pos)
+
+        # Participant-facing joint measurement: position error relative to the
+        # nominal standing pose, without observation scaling.
+        joint_positions = self._tensor_to_numpy(dof_pos - default_dof_pos_ref)
+        joint_velocities = self._tensor_to_numpy(dof_vel)
         base_lin_vel = self._tensor_to_numpy(base_env.base_lin_vel[0])
         base_ang_vel = self._tensor_to_numpy(base_env.base_ang_vel[0])
 
-        joint_names = tuple(getattr(base_env, "dof_names", ()))
+        joint_names = tuple(getattr(base_env, "dof_names", ()))[:num_actuated_dof]
         camera_state = self._extract_camera_state()
 
         return RobotState(
