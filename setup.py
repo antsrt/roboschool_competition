@@ -16,6 +16,7 @@ setup(
                       'gym>=0.14.0',
                       'tqdm',
                       'matplotlib',
-                      'numpy==1.23.5'
+                      'numpy>=1.19.5,<1.24',
+                      'opencv-python'
                       ]
 )

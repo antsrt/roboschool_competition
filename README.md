@@ -223,10 +223,18 @@ docker/ctl.sh ros2-exec
 В shell на хосте:
 
 ```bash
-source scripts/use_local_isaacgym.sh /path/to/isaacgym
+source scripts/use_local_isaacgym.sh /path/to/isaacgym roboschool
 ```
 
-Если Isaac Gym установлен в `~/isaacgym` или `/opt/isaacgym`, путь можно не передавать:
+Этот script делает следующий pipeline:
+
+- создаёт conda environment `roboschool` на Python 3.8, если его ещё нет
+- делает `pip install -e .` в корне `roboschool_competition`
+- делает `pip install -e .` в `isaacgym/python`
+- добавляет `${CONDA_PREFIX}/lib` в `LD_LIBRARY_PATH`
+- оставляет shell в готовом активированном окружении
+
+Если Isaac Gym лежит в `docker/isaac-gym/isaacgym`, `~/isaacgym` или `/opt/isaacgym`, путь можно не передавать:
 
 ```bash
 source scripts/use_local_isaacgym.sh
