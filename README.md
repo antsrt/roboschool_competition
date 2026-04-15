@@ -245,7 +245,9 @@ python -m pip install -e .
 echo 'export PYTHONPATH="$HOME/workspace/roboschool_competition/docker/isaac-gym/isaacgym/python:$HOME/workspace/roboschool_competition/src:$HOME/workspace/roboschool_competition:${PYTHONPATH}"' >> ~/.bashrc
 source ~/.bashrc
 ```
-
+```bash
+conda activate roboschool
+```
 ### 5. В каждом новом shell после `conda activate` экспортировать `LD_LIBRARY_PATH`
 
 Этот шаг нужно выполнять каждый раз после активации окружения:
